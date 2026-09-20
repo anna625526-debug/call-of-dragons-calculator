@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Калькулятор «Вершины власти» — тренировка войск Call of Dragons | AKAME</title>
+<meta name="description" content="Сколько ускорений и ресурсов нужно на тренировку войск в Call of Dragons, чтобы набрать нужную мощь: с учётом всех бонусов к скорости тренировки и перетренировки между любыми тирами." />
+<link rel="canonical" href="https://callofdragons.ru/calculators/power-peak.html" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css?v=5e5e803d" />
+<script>
+// Тема ставится до первой отрисовки — иначе при тёмной теме страница моргает светлой.
+try { document.documentElement.setAttribute('data-theme', localStorage.getItem('akame-theme') || 'light'); } catch (e) {}
+</script>
+<style>
+/* .vt-modal-backdrop из общего styles.css задаёт display:grid явно, и это
+перебивает браузерный [hidden]{display:none} — без этого правила модалка
+остаётся видимой (и её не скрыть через .hidden), несмотря на атрибут. */
+[hidden] { display: none !important; }
+
+.pp-main { padding: 40px 32px 32px; }
+.pp-wrap { max-width: 980px; margin: 0 auto; }
+.pp-back { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 18px; }
+.pp-back:hover { color: var(--gold-deep); }
+[data-theme="dark"] .pp-back:hover { color: var(--gold-bright); }
+
+.pp-lead { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 24px; margin: 28px 0 40px; color: var(--ink-2); font-size: 15px; line-height: 1.65; box-shadow: var(--shadow-soft); }
+.pp-lead b { color: var(--ink); }
+
+.pp-step { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-deep); margin: 40px 0 14px; display: flex; align-items: center; gap: 12px; }
+[data-theme="dark"] .pp-step { color: var(--gold-bright); }
+.pp-step::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+.pp-subhead { font-family: 'Cinzel', serif; font-size: 12.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); margin: 26px 0 10px; }
+.pp-subhead .sub { display: block; font-size: 12px; font-weight: 500; letter-spacing: normal; text-transform: none; color: var(--muted); margin-top: 4px; }
+
+.pp-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 24px; box-shadow: var(--shadow-card); }
+.pp-card.pad { padding: 22px 24px; }
+
+.pp-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); cursor: pointer; user-select: none; }
+.pp-row:last-child { border-bottom: none; }
+.pp-row-lbl { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.pp-row-lbl .sub { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-top: 3px; }
+.pp-row-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.pp-bonus { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; color: var(--gold-deep); white-space: nowrap; }
+[data-theme="dark"] .pp-bonus { color: var(--gold-bright); }
+
+.pp-sw { width: 46px; height: 26px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line-strong); position: relative; flex-shrink: 0; transition: background 0.2s, border-color 0.2s; }
+.pp-sw.on { background: linear-gradient(180deg, var(--gold-bright), var(--gold-deep)); border-color: var(--gold-deep); }
+.pp-sw-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--muted); transition: transform 0.2s, background 0.2s; }
+.pp-sw.on .pp-sw-knob { transform: translateX(20px); background: #fffaf0; }
+
+.pp-field { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.pp-field:last-child { border-bottom: none; }
+.pp-card.pad .pp-field:first-child { padding-top: 0; }
+.pp-label { display: block; font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+.pp-label .sub { display: block; font-size: 12.5px; font-weight: 500; color: var(--muted); margin-top: 3px; }
+
+.pp-input, .pp-select { width: 100%; max-width: 260px; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink); font: 700 15px 'Manrope', sans-serif; padding: 11px 14px; transition: border-color 0.15s, box-shadow 0.15s; }
+.pp-select { cursor: pointer; }
+.pp-input:focus, .pp-select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,165,72,0.18); }
+.pp-inline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+.pp-total { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 18px 0 4px; margin-top: 6px; border-top: 2px solid var(--line-strong); }
+.pp-total-lbl { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.pp-total-val { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 900; color: var(--gold-deep); line-height: 1; }
+[data-theme="dark"] .pp-total-val { color: var(--gold-bright); }
+.pp-total-sub { font-size: 12.5px; color: var(--muted); padding-bottom: 14px; }
+
+.pp-quick-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.pp-quick { padding: 9px 15px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); font: 600 13px 'Manrope', sans-serif; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+.pp-quick:hover { border-color: var(--gold); color: var(--ink); }
+.pp-quick:disabled { opacity: 0.45; cursor: default; border-color: var(--line); color: var(--muted); }
+.pp-quick.active { border-color: var(--gold-deep); color: var(--ink); background: linear-gradient(180deg, #2a1a08 0%, #1a1004 100%); color: var(--gold-bright); }
+[data-theme="dark"] .pp-quick.active { background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #1a1004; border-color: var(--gold-bright); }
+
+.pp-split-after { margin-top: 20px; }
+.pp-split-hdr { font-size: 13.5px; font-weight: 700; color: var(--ink-2); margin-bottom: 10px; }
+.pp-split-hdr b { font-family: 'Cinzel', serif; color: var(--gold-deep); font-size: 15px; }
+[data-theme="dark"] .pp-split-hdr b { color: var(--gold-bright); }
+.pp-split-bar { position: relative; height: 28px; border-radius: var(--radius-sm); background: var(--bg); border: 1px solid var(--line); display: flex; overflow: hidden; }
+.pp-split-seg { height: 100%; flex-shrink: 0; }
+.pp-split-handle { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ink-2); transform: translate(-50%,-50%); cursor: ew-resize; box-shadow: 0 2px 6px rgba(0,0,0,0.3); touch-action: none; z-index: 2; transition: border-color 0.12s; }
+.pp-split-handle:hover, .pp-split-handle.dragging { border-color: var(--gold-deep); background: var(--gold-bright); }
+.pp-split-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; margin-top: 12px; }
+.pp-split-in { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pp-split-in-lbl { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pp-split-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.pp-split-in input { width: 100%; background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink); font: 700 14px 'Manrope', sans-serif; padding: 9px 6px; text-align: center; min-width: 0; }
+.pp-split-in input:focus { outline: none; border-color: var(--gold); }
+
+.pp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+.pp-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow-card); }
+.pp-tile.hero { background: linear-gradient(180deg, color-mix(in srgb, var(--gold-bright) 22%, var(--surface)) 0%, var(--surface) 100%); border-color: var(--gold); }
+.pp-tile-lbl { font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.pp-tile-val { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 900; color: var(--ink); line-height: 1.1; word-break: break-word; }
+.pp-tile-val.time { font-size: 24px; color: var(--gold-deep); }
+[data-theme="dark"] .pp-tile-val.time { color: var(--gold-bright); }
+.pp-tile-sub { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+
+.pp-table { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 18px; box-shadow: var(--shadow-card); }
+.pp-tr { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 14px; align-items: center; padding: 15px 22px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.pp-tr:last-child { border-bottom: none; }
+.pp-tr.head { background: var(--surface-2); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 11px 22px; }
+.pp-td-name { font-weight: 700; color: var(--ink); }
+.pp-td-name .sub { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+.pp-td { text-align: right; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.pp-td.gold { color: var(--gold-deep); }
+[data-theme="dark"] .pp-td.gold { color: var(--gold-bright); }
+
+.pp-res { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.pp-res-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 13px; box-shadow: var(--shadow-soft); }
+.pp-res-ico { width: 36px; height: 36px; flex-shrink: 0; object-fit: contain; }
+.pp-res-name { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.pp-res-val { font-family: 'Cinzel', serif; font-size: 19px; font-weight: 700; color: var(--ink); margin-top: 3px; }
+
+.pp-note { border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; color: var(--muted); line-height: 1.6; margin-top: 16px; }
+.pp-hint { font-size: 12.5px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+.pp-reset-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+.pp-reset-note { font-size: 12.5px; color: var(--muted); }
+.pp-prep-info { font-size: 13px; font-weight: 600; color: var(--gold-deep); margin-top: 8px; }
+.pp-prep-info:empty { display: none; }
+[data-theme="dark"] .pp-prep-info { color: var(--gold-bright); }
+
+.pp-bonus-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.pp-check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.pp-check input { width: 16px; height: 16px; accent-color: var(--gold-deep); cursor: pointer; }
+.pp-advice { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 10px; line-height: 1.55; }
+.pp-advice:empty { display: none; }
+.pp-label-note { font-size: 12.5px; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: normal; }
+.pp-inline-edit { background: none; border: none; padding: 0; font: inherit; font-weight: 700; color: var(--gold-deep); border-bottom: 1px dashed var(--gold-deep); cursor: pointer; }
+[data-theme="dark"] .pp-inline-edit { color: var(--gold-bright); border-bottom-color: var(--gold-bright); }
+.pp-inline-edit:hover { opacity: 0.8; }
+.pp-advice input[type="datetime-local"] { background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); color: var(--ink); font: 700 13px 'Manrope', sans-serif; padding: 6px 8px; }
+
+.pp-scan-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--gold); background: linear-gradient(180deg, var(--gold-bright), var(--gold-deep)); color: #1a1004; font: 700 13px 'Manrope', sans-serif; cursor: pointer; white-space: nowrap; transition: filter 0.2s, transform 0.2s; box-shadow: var(--shadow-soft); }
+.pp-scan-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pp-scan-btn:disabled { opacity: 0.65; cursor: default; transform: none; }
+.pp-spin { animation: pp-spin 0.8s linear infinite; }
+@keyframes pp-spin { to { transform: rotate(360deg); } }
+.pp-scan-available { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; padding: 12px 16px; border: 1px dashed var(--gold); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--gold-bright) 8%, transparent); font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+.pp-scan-available b { color: var(--ink); }
+
+@media (max-width: 760px) {
+.pp-main { padding: 28px 16px 24px; }
+.pp-card, .pp-card.pad { padding-left: 18px; padding-right: 18px; }
+.pp-input { max-width: none; }
+/* Шапка таблицы на телефоне не помещается, поэтому подписи колонок
+переезжают в сами ячейки. */
+.pp-tr { grid-template-columns: 1fr; gap: 4px; padding: 14px 18px; }
+.pp-tr.head { display: none; }
+.pp-td { display: flex; justify-content: space-between; align-items: baseline; text-align: left; }
+.pp-td::before { content: attr(data-l); font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.pp-td-name { margin-bottom: 8px; }
+.pp-tile-val { font-size: 26px; }
+}
+</style>
+
+<style>
+/* Дополнения для режима ручного количества — исходный CSS калькулятора сохранён выше. */
+.pp-mode-card { margin-top: 14px; }
+.pp-mode-switch { display:flex; gap:8px; flex-wrap:wrap; }
+.pp-mode-btn { border:1px solid var(--line); background:var(--surface-2); color:var(--ink-2); border-radius:999px; padding:10px 16px; font:700 13px 'Manrope',sans-serif; cursor:pointer; }
+.pp-mode-btn.active { background:linear-gradient(180deg,#2a1a08 0%,#1a1004 100%); color:var(--gold-bright); border-color:var(--gold-deep); }
+[data-theme="dark"] .pp-mode-btn.active { background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#1a1004; }
+.pp-mode-desc { margin-top:10px; font-size:12.5px; line-height:1.55; color:var(--muted); max-width:760px; }
+.pp-manual-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:14px; }
+.pp-manual-input { display:flex; flex-direction:column; gap:7px; }
+.pp-manual-name { font-size:12px; font-weight:700; color:var(--muted); }
+.pp-manual-input .pp-input { max-width:none; box-sizing:border-box; }
+.pp-tier-mode-switch { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.pp-tier-common-wrap { margin-top:8px; }
+.pp-manual-fresh-item { min-width:0; }
+.pp-personal-tier { display:flex; flex-direction:column; gap:7px; margin-bottom:8px; }
+.pp-personal-tier .pp-select { max-width:none; box-sizing:border-box; }
+
+/* Локальные чипы типов войск выглядят и ведут себя как кнопка «Все типы». */
+.chips { display:flex; gap:8px; flex-wrap:wrap; }
+.chips .chip { padding:9px 15px; border-radius:999px; background:var(--surface-2); color:var(--ink-2); border:1px solid var(--line); font:600 13px 'Manrope',sans-serif; cursor:pointer; white-space:nowrap; transition:all .2s; }
+.chips .chip:hover { border-color:var(--gold); color:var(--ink); }
+.chips .chip.active { border-color:var(--gold-deep); color:var(--gold-bright); background:linear-gradient(180deg,#2a1a08 0%,#1a1004 100%); }
+[data-theme="dark"] .chips .chip.active { background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#1a1004; border-color:var(--gold-bright); }
+
+/* Бонусы заготовки открываются настоящим модальным окном поверх страницы. */
+#ppPrepBonusModal.vt-modal-backdrop { position:fixed !important; inset:0 !important; z-index:9999 !important; display:grid !important; place-items:center !important; padding:24px !important; box-sizing:border-box; background:rgba(0,0,0,.58); }
+#ppPrepBonusModal .vt-modal { width:min(680px,calc(100vw - 32px)); max-height:min(86vh,760px); overflow:auto; margin:0 !important; position:relative; box-sizing:border-box; }
+@media (max-width:600px){ .pp-main{padding:24px 14px 24px}.pp-card.pad{padding:18px 16px}.pp-tr{grid-template-columns:1fr;gap:5px}.pp-tr.head{display:none}.pp-td{text-align:left}.pp-mode-btn{flex:1} }
+</style>
+</head>
+<body>
+
+<main class="pp-main">
+<div class="pp-wrap">
+
+<div class="section-head" style="margin-bottom:0;">
+<div>
+<div class="section-eyebrow">Калькуляторы</div>
+<h1 class="section-title">Вершины власти</h1>
+</div>
+</div>
+
+<div class="pp-lead">
+Считает, сколько <b>ускорений</b> и <b>ресурсов</b> уйдёт на тренировку войск, чтобы набрать нужную <b>мощь</b> — с учётом всех бонусов к скорости тренировки и перетренировки между тирами (она выгоднее по ускорениям на единицу мощи, чем тренировка с нуля). Базовое время тренировки одного юнита без бонусов — 15 / 30 / 60 / 80 / 120 секунд для T1–T5, одинаково для всех типов войск. Стоимость в ресурсах бонусами к скорости не меняется. Актуальные даты событий — на странице <a href="../calendar.html">календаря</a>; подсказка, когда ставить конкретную заготовку, — в разделе 2.1 ниже.
+</div>
+
+<div class="pp-step">1 · Бонусы к скорости тренировки</div>
+<div class="pp-card" id="ppToggles">
+<div class="pp-row" data-toggle="recruit">
+<div class="pp-row-lbl">Технология «Вербовка I–II»
+<span class="sub">обе ступени в академии</span>
+</div>
+<div class="pp-row-right"><span class="pp-bonus">+20%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-toggle="kingdom">
+<div class="pp-row-lbl">Бафф королевства «Военный сбор»</div>
+<div class="pp-row-right"><span class="pp-bonus">+10%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-toggle="title">
+<div class="pp-row-lbl">Титул «Старший надзиратель»</div>
+<div class="pp-row-right"><span class="pp-bonus">+10%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-toggle="titan">
+<div class="pp-row-lbl">Усиление исполина</div>
+<div class="pp-row-right"><span class="pp-bonus">+5%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-toggle="cityTheme">
+<div class="pp-row-lbl">Тема города
+<span class="sub">+3% к скорости и −2% к затратам ресурсов</span>
+</div>
+<div class="pp-row-right"><span class="pp-bonus">+3%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+
+<div class="pp-field">
+<label class="pp-label">Уровень VIP
+<span class="sub">+5% на уровнях 6, 7, 10 и 14 — максимум +20%</span>
+</label>
+<div class="pp-inline">
+<select id="ppVip" class="pp-select" style="max-width:120px;"></select>
+<span class="pp-bonus" id="ppVipBonus">+0%</span>
+</div>
+</div>
+
+<div class="pp-field">
+<label class="pp-label">Камень маны обучения</label>
+<select id="ppStone" class="pp-select"></select>
+</div>
+
+<div class="pp-total">
+<span class="pp-total-lbl">Итоговый бонус к скорости</span>
+<span class="pp-total-val" id="ppTotalBonus">+0%</span>
+</div>
+<div class="pp-total-sub" id="ppTotalSub"></div>
+</div>
+
+<div class="pp-step">2 · Расчёт</div>
+<div class="pp-card pad pp-mode-card">
+<div class="pp-field">
+<label class="pp-label">Режим расчёта</label>
+<div class="pp-mode-switch" id="ppModeSwitch">
+<button type="button" class="pp-mode-btn active" data-mode="target">Цель по мощи</button>
+<button type="button" class="pp-mode-btn" data-mode="manual">Количество войск</button>
+</div>
+<div class="pp-mode-desc" id="ppModeDesc">Вводишь желаемую мощь — калькулятор сохраняет исходную логику «Вершины власти»: сначала перетренировка T4 → T5, затем недостающая мощь через тренировку.</div>
+</div>
+</div>
+<div class="pp-card pad" id="ppTargetCard">
+<div class="pp-field">
+<label class="pp-label">Сколько мощи хочешь набрать</label>
+<div class="pp-inline">
+<input type="text" id="ppTarget" class="pp-input" placeholder="0" inputmode="numeric" autocomplete="off">
+<div class="pp-quick-row">
+<button type="button" class="pp-quick" data-target="5000000">5 000 000</button>
+<button type="button" class="pp-quick" data-target="30000000">30 000 000</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="pp-subhead">2.1 · Заготовка
+<span class="sub">партии, поставленные заранее во все 5 типов войск: их собирают в день события, и мощь засчитывается сразу — без ускорений и ресурсов во время события</span>
+</div>
+<div class="pp-card pad">
+<div class="pp-field">
+<label class="pp-label">Заготовки</label>
+<select id="ppPrep" class="pp-select" style="max-width:440px;"></select>
+<div class="pp-prep-info" id="ppPrepInfo"></div>
+</div>
+
+<div class="pp-field" id="ppPrepTimeField" style="display:none;">
+<div class="pp-bonus-row">
+<label class="pp-label" style="margin-bottom:0;">Время тренировки заготовки
+<span class="sub" id="ppPrepBonusHint"></span>
+</label>
+<div class="pp-inline" style="gap:10px;">
+<label class="pp-check">
+<input type="checkbox" id="ppPrepCustomBonusOn">
+Отдельные бонусы для заготовки
+</label>
+<button type="button" class="pp-quick" id="ppPrepBonusEdit" style="display:none;">Настроить</button>
+</div>
+</div>
+<div class="pp-inline" style="margin-top:10px;">
+<span class="pp-bonus" style="font-size:19px;" id="ppPrepTimeValue"></span>
+</div>
+<div class="pp-advice" id="ppPrepAdvice"></div>
+</div>
+</div>
+
+<div class="pp-subhead">2.2 · Перетренировка
+<span class="sub">выгоднее по ускорениям на единицу мощи, чем тренировка с нуля — платишь только разницу между тирами</span>
+</div>
+<div class="pp-card pad">
+<div class="pp-field pp-target-retrain-controls">
+<label class="pp-label">Тип войск для перетренировки
+<span class="sub">можно выбрать несколько — появится разбивка по ним</span>
+</label>
+<div class="pp-inline">
+<div class="chips" id="ppRetrainTypeChips"></div>
+<button type="button" class="pp-quick" id="ppRetrainAllTypes">Все типы</button>
+</div>
+</div>
+
+<div class="pp-field pp-manual-retrain-ui" id="ppManualRetrainUI" hidden>
+<label class="pp-label">Перетренировка T4 → T5
+<span class="sub">введите количество отдельно для каждого типа войск</span>
+</label>
+<div class="pp-manual-grid" id="ppManualRetrainInputs"></div>
+</div>
+
+<div class="pp-field pp-target-retrain-amount">
+<label class="pp-label">Перетренировать T4 → T5 (юнитов)</label>
+<div class="pp-inline">
+<input type="text" id="ppRetrain" class="pp-input" placeholder="0" inputmode="numeric" autocomplete="off">
+<div class="pp-quick-row">
+<button type="button" class="pp-quick" id="ppOnlyRetrain">Только перетренировка</button>
+<button type="button" class="pp-quick" id="ppNoRetrain">Без перетренировки</button>
+<button type="button" class="pp-scan-btn" id="ppScanBtn">
+<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+По скриншоту
+</button>
+<input type="file" id="ppScanFile" accept="image/*" hidden>
+</div>
+</div>
+<div class="pp-hint" id="ppScanResult"></div>
+<div class="pp-scan-available" id="ppScanAvailable" hidden>
+<span id="ppScanAvailableText"></span>
+<button type="button" class="pp-quick" id="ppScanAvailableReset">Сбросить</button>
+</div>
+</div>
+
+<div class="pp-field pp-split-area" id="ppSplitRetrainArea" style="display:none;">
+<div class="pp-split-hdr">Перетренировка T4 → T5 — всего <b id="ppSplitRetrainTotal">0</b></div>
+<div class="pp-split-bar" id="ppSplitBarRetrain"></div>
+<div class="pp-split-inputs" id="ppSplitInputsRetrain"></div>
+</div>
+
+<div class="pp-field">
+<button type="button" class="pp-quick" id="ppExtraRetrainToggle">Дополнительный вариант перетренировки</button>
+</div>
+
+<div class="pp-field" id="ppExtraRetrainArea" style="display:none;">
+<label class="pp-label">Ещё один диапазон
+<span class="sub">в дополнение к T4 → T5 выше — заполни руками, сколько юнитов каждого типа переводишь</span>
+</label>
+<select id="ppExtraRetrainRange" class="pp-select" style="max-width:220px;"></select>
+<div class="pp-split-inputs" id="ppExtraRetrainInputs" style="margin-top:14px;"></div>
+</div>
+</div>
+
+<div class="pp-subhead">2.3 · Тренировка
+<span class="sub">чем добираем мощь сверх заготовки и перетренировки</span>
+</div>
+<div class="pp-card pad">
+<div class="pp-field pp-target-fresh-controls">
+<label class="pp-label">Тип войск для тренировки
+<span class="sub">можно выбрать несколько — появится разбивка по ним</span>
+</label>
+<div class="pp-inline">
+<div class="chips" id="ppFreshTypeChips"></div>
+<button type="button" class="pp-quick" id="ppFreshAllTypes">Все типы</button>
+</div>
+</div>
+
+<div class="pp-field pp-manual-fresh-ui" id="ppManualFreshUI" hidden>
+<label class="pp-label">Тренировка с нуля</label>
+<div class="pp-tier-mode-switch" id="ppManualTierMode">
+<button type="button" class="pp-mode-btn active" data-tier-mode="common">Общий тир для всех</button>
+<button type="button" class="pp-mode-btn" data-tier-mode="personal">Персональный тир</button>
+</div>
+<div id="ppManualCommonTierWrap" class="pp-tier-common-wrap">
+<label class="pp-label" style="margin-top:14px;">Тир для всех типов</label>
+<select id="ppManualCommonTier" class="pp-select"></select>
+</div>
+<div class="pp-manual-grid" id="ppManualFreshInputs"></div>
+</div>
+
+<div class="pp-field pp-target-fresh-tier">
+<label class="pp-label">Тир для тренировки</label>
+<select id="ppFreshTier" class="pp-select"></select>
+<div class="pp-split-area pp-split-after" id="ppSplitFreshArea" style="display:none;">
+<div class="pp-split-hdr">Тренировка с нуля — всего <b id="ppSplitFreshTotal">0</b></div>
+<div class="pp-split-bar" id="ppSplitBarFresh"></div>
+<div class="pp-split-inputs" id="ppSplitInputsFresh"></div>
+</div>
+</div>
+</div>
+
+<div class="pp-step">3 · Результат</div>
+<div class="pp-tiles" id="ppTiles"></div>
+<div class="pp-table" id="ppTable"></div>
+
+<div class="pp-step">Ресурсы</div>
+<div class="pp-res" id="ppRes"></div>
+<div id="ppNotes"></div>
+
+<div class="pp-hint">Мощь за юнит: T1 — 1, T2 — 2, T3 — 3, T4 — 4, T5 — 10. Любая перетренировка (не только T4 → T5) стоит только разницу в ресурсах и времени между выбранными тирами. У летающих войск нет T1 и T2.</div>
+
+<div class="pp-reset-row">
+<button type="button" class="pp-quick" id="ppReset">Сбросить на стандартные значения</button>
+<span class="pp-reset-note">введённые числа и галочки сохраняются в этом браузере</span>
+</div>
+
+</div>
+</main>
+
+<div id="ppPrepBonusModal" hidden class="pp-prep-inline-settings">
+<div class="pp-prep-inline-card">
+<button class="vt-modal-close" id="ppPrepBonusModalClose" aria-label="Закрыть">✕</button>
+<div class="vt-modal-title">Отдельные бонусы для заготовки</div>
+<div class="vt-modal-sub">Не меняет расчёт перетренировки и тренировки ниже — только бонусы и время заготовки.</div>
+
+<div class="pp-row" data-ptoggle="recruit">
+<div class="pp-row-lbl">Технология «Вербовка I–II»</div>
+<div class="pp-row-right"><span class="pp-bonus">+20%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-ptoggle="kingdom">
+<div class="pp-row-lbl">Бафф королевства «Военный сбор»</div>
+<div class="pp-row-right"><span class="pp-bonus">+10%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-ptoggle="title">
+<div class="pp-row-lbl">Титул «Старший надзиратель»</div>
+<div class="pp-row-right"><span class="pp-bonus">+10%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-ptoggle="titan">
+<div class="pp-row-lbl">Усиление исполина</div>
+<div class="pp-row-right"><span class="pp-bonus">+5%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+<div class="pp-row" data-ptoggle="cityTheme">
+<div class="pp-row-lbl">Тема города</div>
+<div class="pp-row-right"><span class="pp-bonus">+3%</span><div class="pp-sw"><div class="pp-sw-knob"></div></div></div>
+</div>
+
+<div class="pp-field">
+<label class="pp-label">Уровень VIP</label>
+<select id="ppPrepBonusVip" class="pp-select" style="max-width:140px;"></select>
+</div>
+<div class="pp-field">
+<label class="pp-label">Камень маны обучения</label>
+<select id="ppPrepBonusStone" class="pp-select"></select>
+</div>
+
+<div class="pp-total">
+<span class="pp-total-lbl">Итоговый бонус для заготовки</span>
+<span class="pp-total-val" id="ppPrepBonusModalTotal">+0%</span>
+</div>
+
+<div class="vt-modal-btns">
+<button type="button" class="pp-quick" id="ppPrepBonusModalDone">Готово</button>
+</div>
+</div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+// ── Тема ──
+var SUN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+var MOON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+// дотренировалась намного раньше времени.
+var PEAK_READY_BUFFER_HOURS = 15;
+var nearestPeakStart = null; // Date | null — начало ближайшей «Вершины власти»
+var nearestPeakEnd = null; // Date | null — последний день того же события
+var nearestPeakFetched = false;
+// Желаемое время готовности заготовки можно задать вручную вместо
+// авто-расчёта (начало события + запас) — кликом по дате в подсказке.
+// Сбрасывается при перезагрузке страницы, не сохраняется.
+var prepReadyOverride = null;
+var prepReadyEditing = false;
+
+function fetchNearestPeakEvent() {
+var now = new Date();
+var tMin = now.toISOString();
+var tMax = new Date(now.getTime() + 60 * 86400000).toISOString();
+var url = 'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(GCAL_ID) +
+'/events?key=' + GCAL_API_KEY + '&timeMin=' + encodeURIComponent(tMin) + '&timeMax=' + encodeURIComponent(tMax) +
+'&singleEvents=true&orderBy=startTime&maxResults=10&q=' + encodeURIComponent('Вершины власти');
+fetch(url)
+.then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+.then(function (data) {
+var ev = (data.items || []).filter(function (e) { return /вершин/i.test(e.summary || ''); })[0];
+if (ev) {
+nearestPeakStart = new Date(ev.start.dateTime || (ev.start.date + 'T00:00:00Z'));
+if (ev.end.dateTime) {
+nearestPeakEnd = new Date(ev.end.dateTime);
+} else if (ev.end.date) {
+// Google API: конец all-day события не включает последний день.
+nearestPeakEnd = new Date(new Date(ev.end.date + 'T00:00:00Z').getTime() - 86400000);
+}
+}
+nearestPeakFetched = true;
+render();
+})
+.catch(function () { nearestPeakFetched = true; render(); });
+}
+fetchNearestPeakEvent();
+
+// Момент, к которому должны быть готовы войска — вручную заданный, либо
+// начало ближайшей «Вершины власти» плюс запас.
+function effectiveReadyBy() {
+if (prepReadyOverride) return prepReadyOverride;
+return nearestPeakStart ? new Date(nearestPeakStart.getTime()) : null;
+}
+
+// Показывает "до начала события X, ближайшие «Вершины власти» пройдут с A по Б"
+// рядом с заголовком «Заготовки» — только если такое событие ещё не началось.
+function nearestPeakNoteText() {
+if (!nearestPeakStart || nearestPeakStart.getTime() <= Date.now()) return '';
+var dOpts = { day: 'numeric', month: 'long', timeZone: 'UTC' };
+var sameMonth = nearestPeakEnd && nearestPeakStart.getUTCMonth() === nearestPeakEnd.getUTCMonth() && nearestPeakStart.getUTCFullYear() === nearestPeakEnd.getUTCFullYear();
+var startStr = sameMonth ? nearestPeakStart.toLocaleDateString('ru-RU', { day: 'numeric', timeZone: 'UTC' }) : nearestPeakStart.toLocaleDateString('ru-RU', dOpts);
+var endStr = nearestPeakEnd ? nearestPeakEnd.toLocaleDateString('ru-RU', dOpts) : nearestPeakStart.toLocaleDateString('ru-RU', dOpts);
+var untilStr = fmtDuration((nearestPeakStart.getTime() - Date.now()) / 1000);
+return '(до начала события ' + untilStr + ', ближайшие «Вершины власти» пройдут с ' + startStr + ' по ' + endStr + ')';
+}
+
+// "YYYY-MM-DDTHH:mm" для <input type="datetime-local"> — цифры читаются как UTC,
+// без пересчёта в часовой пояс браузера.
+function isoLocalUTC(d) {
+var p2 = function (n) { return String(n).padStart(2, '0'); };
+return d.getUTCFullYear() + '-' + p2(d.getUTCMonth() + 1) + '-' + p2(d.getUTCDate()) + 'T' + p2(d.getUTCHours()) + ':' + p2(d.getUTCMinutes());
+}
+
+function updatePrepSection(r) {
+var p = PREPS.filter(function (x) { return x.id === state.prep; })[0];
+var field = document.getElementById('ppPrepTimeField');
+if (!p || !p.kind) { field.style.display = 'none'; return; }
+field.style.display = '';
+
+var bonus = prepBonusPct();
+document.getElementById('ppPrepCustomBonusOn').checked = state.prepCustomBonusOn;
+document.getElementById('ppPrepBonusEdit').style.display = state.prepCustomBonusOn ? '' : 'none';
+document.getElementById('ppPrepBonusHint').textContent = state.prepCustomBonusOn
+? '— свой набор, +' + bonus + '%'
+: '— как в разделе 1, +' + bonus + '%';
+
+var sec = prepTrainSeconds(p, bonus);
+document.getElementById('ppPrepTimeValue').textContent = fmtDuration(sec);
+renderPrepAdvice(sec);
+}
+
+function renderPrepAdvice(sec) {
+var adviceEl = document.getElementById('ppPrepAdvice');
+var readyBy = prepReadyOverride || nearestPeakStart || null;
+
+adviceEl.innerHTML = '';
+adviceEl.appendChild(document.createTextNode('Хочу, чтобы заготовка была готова к: '));
+var input = document.createElement('input');
+input.type = 'datetime-local';
+input.value = readyBy ? isoLocalUTC(readyBy) : '';
+input.setAttribute('aria-label', 'Время начала события');
+adviceEl.appendChild(input);
+adviceEl.appendChild(document.createTextNode(' UTC '));
+var applyBtn = document.createElement('button');
+applyBtn.type = 'button'; applyBtn.className = 'pp-quick'; applyBtn.textContent = 'Применить';
+applyBtn.addEventListener('click', function () {
+if (input.value) {
+  prepReadyOverride = new Date(input.value + ':00Z');
+  prepReadyEditing = false;
+  render();
+}
+});
+adviceEl.appendChild(applyBtn);
+
+if (!readyBy) {
+  var hint = document.createElement('div');
+  hint.className = 'pp-hint';
+  hint.textContent = 'Укажи момент начала события — окончание тренировки будет рассчитано ровно на это время.';
+  adviceEl.appendChild(hint);
+  return;
+}
+
+var needDate = new Date(readyBy.getTime() - sec * 1000);
+var dOpts = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' };
+var tOpts = { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' };
+var startStr = needDate.toLocaleDateString('ru-RU', dOpts) + ', ' + needDate.toLocaleTimeString('ru-RU', tOpts) + ' UTC';
+var endStr = readyBy.toLocaleDateString('ru-RU', dOpts) + ', ' + readyBy.toLocaleTimeString('ru-RU', tOpts) + ' UTC';
+var calcLine = document.createElement('div');
+calcLine.className = 'pp-hint';
+calcLine.innerHTML = 'Начать тренировку: <b>' + startStr + '</b><br>Окончание тренировки: <b>' + endStr + '</b>';
+adviceEl.appendChild(calcLine);
+}
+
+// ── Отдельные бонусы для заготовки (не трогают расчёт калькулятора) ──
+var prepBonusModal = document.getElementById('ppPrepBonusModal');
+prepBonusModal.querySelectorAll('[data-ptoggle]').forEach(function (row) {
+row.addEventListener('click', function () {
+state.prepCustomToggles[row.dataset.ptoggle] = !state.prepCustomToggles[row.dataset.ptoggle];
+renderPrepBonusModal();
+render();
+});
+});
+var prepBonusVipSel = document.getElementById('ppPrepBonusVip');
+var prepBonusVipOpts = [];
+for (var pbv = 1; pbv <= 16; pbv++) prepBonusVipOpts.push('<option value="' + pbv + '">' + (pbv === 16 ? 'VIP S' : 'VIP ' + pbv) + '</option>');
+prepBonusVipSel.innerHTML = prepBonusVipOpts.join('');
+prepBonusVipSel.addEventListener('change', function () {
+var v = parseInt(prepBonusVipSel.value, 10);
+state.prepCustomVip = isFinite(v) ? Math.max(1, Math.min(16, v)) : 1;
+renderPrepBonusModal();
+render();
+});
+var prepBonusStoneSel = document.getElementById('ppPrepBonusStone');
+prepBonusStoneSel.innerHTML = MANA_STONES.map(function (s) {
+return '<option value="' + s.id + '">' + s.ru + (s.bonus ? ' +' + s.bonus + '%' : '') + '</option>';
+}).join('');
+prepBonusStoneSel.addEventListener('change', function () {
+state.prepCustomStone = prepBonusStoneSel.value;
+renderPrepBonusModal();
+render();
+});
+function renderPrepBonusModal() {
+prepBonusModal.querySelectorAll('[data-ptoggle]').forEach(function (row) {
+row.querySelector('.pp-sw').classList.toggle('on', !!state.prepCustomToggles[row.dataset.ptoggle]);
+});
+prepBonusVipSel.value = state.prepCustomVip;
+prepBonusStoneSel.value = state.prepCustomStone;
+document.getElementById('ppPrepBonusModalTotal').textContent = '+' + totalBonusFrom(state.prepCustomToggles, state.prepCustomVip, state.prepCustomStone) + '%';
+}
+function openPrepBonusModal() { renderPrepBonusModal(); prepBonusModal.hidden = false; }
+function closePrepBonusModal() { prepBonusModal.hidden = true; render(); }
+document.getElementById('ppPrepBonusModalClose').addEventListener('click', closePrepBonusModal);
+document.getElementById('ppPrepBonusModalDone').addEventListener('click', closePrepBonusModal);
+
+document.getElementById('ppPrepCustomBonusOn').addEventListener('change', function (e) {
+state.prepCustomBonusOn = e.target.checked;
+if (state.prepCustomBonusOn) {
+// Стартуем с текущих значений шага 1 — дальше их можно поправить отдельно.
+state.prepCustomToggles = Object.assign({}, state.toggles);
+state.prepCustomVip = state.vip;
+state.prepCustomStone = state.stone;
+}
+render();
+});
+document.getElementById('ppPrepBonusEdit').addEventListener('click', openPrepBonusModal);
+
+// Сколько сейчас даёт дополнительный вариант перетренировки.
+function currentExtraGain() {
+if (!state.retrainExtraOn) return 0;
+var r = RETRAIN_RANGES.filter(function (x) { return x.id === state.retrainExtraRange; })[0];
+return r ? state.retrainExtra * retrainRangePower(r) : 0;
+}
+
+// Сколько юнитов доп. варианта хватит, чтобы закрыть остаток цели после
+// заготовки и базовой перетренировки — больше вводить незачем.
+function extraNeededForTarget() {
+if (state.target <= 0) return 0;
+var range = RETRAIN_RANGES.filter(function (x) { return x.id === state.retrainExtraRange; })[0];
+if (!range) return 0;
+var remaining = eventTarget() - state.retrain * RETRAIN_POWER;
+return remaining > 0 ? Math.ceil(remaining / retrainRangePower(range)) : 0;
+}
+
+// Больше, чем нужно на остаток цели (после заготовки и доп. варианта),
+// перетренировывать незачем — верхняя граница округляется вверх, чтобы
+// одной перетренировкой можно было закрыть его целиком.
+function retrainForWholeTarget() {
+var t = eventTarget() - currentExtraGain();
+return t > 0 ? Math.ceil(t / RETRAIN_POWER) : 0;
+}
+function clampRetrainToTarget() {
+var max = retrainMaxAllowed();
+if (isFinite(max) && state.retrain > max) state.retrain = Math.max(0, max);
+}
+var targetInput = document.getElementById('ppTarget');
+var retrainInput = document.getElementById('ppRetrain');
+targetInput.addEventListener('input', function () {
+state.target = formatInputLive(targetInput);
+clampRetrainToTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+retrainInput.addEventListener('input', function () {
+state.retrain = formatInputLive(retrainInput);
+clampRetrainToTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+
+document.querySelectorAll('.pp-quick[data-target]').forEach(function (btn) {
+btn.addEventListener('click', function () {
+state.target = parseInt(btn.dataset.target, 10);
+targetInput.value = formatNum(state.target);
+clampRetrainToTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+});
+
+var onlyRetrainBtn = document.getElementById('ppOnlyRetrain');
+onlyRetrainBtn.addEventListener('click', function () {
+var max = retrainMaxAllowed();
+state.retrain = isFinite(max) ? max : retrainForWholeTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+
+var noRetrainBtn = document.getElementById('ppNoRetrain');
+noRetrainBtn.addEventListener('click', function () {
+state.retrain = 0;
+retrainInput.value = '';
+render();
+});
+
+// ── Дополнительный вариант перетренировки: без ползунков, все 5 типов
+// заполняются руками независимо друг от друга и от чипов перетренировки выше. ──
+var extraToggleBtn = document.getElementById('ppExtraRetrainToggle');
+var extraArea = document.getElementById('ppExtraRetrainArea');
+var extraRangeSel = document.getElementById('ppExtraRetrainRange');
+var extraInputsEl = document.getElementById('ppExtraRetrainInputs');
+var extraInputs = {};
+
+extraRangeSel.innerHTML = RETRAIN_RANGES.map(function (r) {
+return '<option value="' + r.id + '">' + retrainRangeLabel(r) + ' · +' + retrainRangePower(r) + ' мощи за юнита</option>';
+}).join('');
+extraRangeSel.value = state.retrainExtraRange;
+extraRangeSel.addEventListener('change', function () {
+state.retrainExtraRange = extraRangeSel.value;
+clampRetrainToTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+
+function recomputeExtraTotal() {
+state.retrainExtra = TYPE_IDS.reduce(function (s, id) { return s + (state.split.retrainExtra[id] || 0); }, 0);
+}
+
+TROOP_TYPES.forEach(function (t) {
+var wrap = document.createElement('div');
+wrap.className = 'pp-split-in';
+var lbl = document.createElement('div');
+lbl.className = 'pp-split-in-lbl';
+lbl.innerHTML = '<span class="pp-split-dot" style="background:' + t.color + '"></span>' + t.ru;
+var inp = document.createElement('input');
+inp.type = 'text'; inp.inputMode = 'numeric'; inp.autocomplete = 'off';
+wrap.appendChild(lbl); wrap.appendChild(inp);
+extraInputsEl.appendChild(wrap);
+extraInputs[t.id] = inp;
+inp.addEventListener('input', function () {
+var v = formatInputLive(inp, true);
+if (state.target > 0) {
+var otherSum = TYPE_IDS.reduce(function (s, id) { return id === t.id ? s : s + state.split.retrainExtra[id]; }, 0);
+v = Math.max(0, Math.min(v, extraNeededForTarget() - otherSum));
+}
+state.split.retrainExtra[t.id] = v;
+inp.value = formatNum(v, true);
+recomputeExtraTotal();
+clampRetrainToTarget();
+retrainInput.value = formatNum(state.retrain);
+render();
+});
+});
+
+function renderExtraInputs() {
+TYPE_IDS.forEach(function (id) {
+var inp = extraInputs[id];
+if (document.activeElement !== inp) inp.value = formatNum(state.split.retrainExtra[id], true);
+});
+}
+
+extraToggleBtn.addEventListener('click', function () {
+state.retrainExtraOn = !state.retrainExtraOn;
+if (!state.retrainExtraOn) {
+TYPE_IDS.forEach(function (id) { state.split.retrainExtra[id] = 0; });
+state.retrainExtra = 0;
+renderExtraInputs();
+}
+render();
+});
+
+// ── Тир для тренировки с нуля ──
+var freshSel = document.getElementById('ppFreshTier');
+function fillFreshTiers() {
+// Когда выбран один тип войск, не предлагаем тиры, которых у него нет
+// (у летающих нет T1 и T2).
+var allowed = TIERS.filter(function (t) { return isSplit(state.freshTypes) || costKnown(mainType(state.freshTypes), t); });
+if (allowed.indexOf(state.freshTier) < 0) state.freshTier = allowed[allowed.length - 1];
+freshSel.innerHTML = allowed.map(function (t) {
+return '<option value="' + t + '">' + t.toUpperCase() + ' · +' + POWER[t] + ' мощи за юнита</option>';
+}).join('');
+freshSel.value = state.freshTier;
+}
+freshSel.addEventListener('change', function () { state.freshTier = freshSel.value; render(); });
+
+// ── Расчёт ──
+function calc() {
+var bonusPct = totalBonusPct();
+var mult = 1 + bonusPct / 100;
+var freshTier = state.freshTier;
+var resMult = state.toggles.cityTheme ? (1 - CITY_THEME_RES_DISCOUNT) : 1;
+
+// Заготовка засчитывается первой и в ускорения с ресурсами события не входит:
+// её оплатили до старта.
+var prep = prepInfo();
+var target = eventTarget();
+
+var extraRange = RETRAIN_RANGES.filter(function (x) { return x.id === state.retrainExtraRange; })[0];
+var extraCount = state.retrainExtraOn ? state.retrainExtra : 0;
+var extraPerUnit = extraRange ? retrainRangePower(extraRange) : 0;
+var extraPowerGain = extraCount * extraPerUnit;
+
+var retrainPowerGain = state.retrain * RETRAIN_POWER;
+var remainingPower = Math.max(0, target - retrainPowerGain - extraPowerGain);
+var freshUnits = target > 0 ? Math.ceil(remainingPower / POWER[freshTier]) : 0;
+var freshPowerGain = freshUnits * POWER[freshTier];
+
+// При одном выбранном типе войск вся раскладка уходит ему — отдельной ветки
+// расчёта для этого случая не нужно. Доп. вариант заполняется руками —
+// его раскладку не пересчитываем.
+rescaleSplit(state.split.retrain, state.retrain, state.splitManual.retrain, state.retrainTypes, availableFor);
+rescaleSplit(state.split.fresh, freshUnits, state.splitManual.fresh, state.freshTypes);
+
+// Время одинаково для всех типов войск, поэтому от разбивки не зависит.
+var retrainSec = state.retrain * (SEC_PER_UNIT.t5 - SEC_PER_UNIT.t4) / mult;
+var extraSec = extraRange ? extraCount * (SEC_PER_UNIT[extraRange.to] - SEC_PER_UNIT[extraRange.from]) / mult : 0;
+var freshSec = freshUnits * SEC_PER_UNIT[freshTier] / mult;
+
+var retrainRes = zeroRes(), extraRes = zeroRes(), freshRes = zeroRes();
+var missing = [];
+function noteMissing(typeId, tier) {
+var name = TROOP_TYPES.filter(function (t) { return t.id === typeId; })[0].ru;
+var label = name + ' ' + tier.toUpperCase();
+if (missing.indexOf(label) < 0) missing.push(label);
+}
+function addRetrain(typeId, count) {
+if (count <= 0) return;
+if (costKnown(typeId, 't5') && costKnown(typeId, 't4')) addInto(retrainRes, diffRes(costOf(typeId, 't5'), costOf(typeId, 't4')), count);
+else noteMissing(typeId, 't5');
+}
+function addExtraRetrain(typeId, count) {
+if (count <= 0 || !extraRange) return;
+if (costKnown(typeId, extraRange.to) && costKnown(typeId, extraRange.from)) addInto(extraRes, diffRes(costOf(typeId, extraRange.to), costOf(typeId, extraRange.from)), count);
+else noteMissing(typeId, extraRange.to);
+}
+function addFresh(typeId, count) {
+if (count <= 0) return;
+if (costKnown(typeId, freshTier)) addInto(freshRes, costOf(typeId, freshTier), count);
+else noteMissing(typeId, freshTier);
+}
+state.retrainTypes.forEach(function (id) {
+addRetrain(id, state.split.retrain[id]);
+});
+// Доп. вариант не привязан к выбранным чипам — считаем по всем 5 типам,
+// раз заполняется руками независимо от них.
+TYPE_IDS.forEach(function (id) {
+addExtraRetrain(id, state.split.retrainExtra[id]);
+});
+state.freshTypes.forEach(function (id) {
+addFresh(id, state.split.fresh[id]);
+});
+retrainRes = scaleRes(retrainRes, resMult);
+extraRes = scaleRes(extraRes, resMult);
+freshRes = scaleRes(freshRes, resMult);
+
+return {
+bonusPct: bonusPct, freshUnits: freshUnits, prep: prep,
+retrainPowerGain: retrainPowerGain, extraPowerGain: extraPowerGain, freshPowerGain: freshPowerGain,
+extraCount: extraCount, extraRange: extraRange,
+totalPowerGained: prep.power + retrainPowerGain + extraPowerGain + freshPowerGain,
+retrainSec: retrainSec, extraSec: extraSec, freshSec: freshSec, totalSec: retrainSec + extraSec + freshSec,
+totalRes: sumRes(sumRes(retrainRes, extraRes), freshRes), missing: missing, resMult: resMult,
+};
+}
+
+// ── Отрисовка ──
+function render() {
+document.querySelectorAll('#ppRetrainTypeChips .chip[data-type]').forEach(function (c) {
+c.classList.toggle('active', state.retrainTypes.indexOf(c.dataset.type) >= 0);
+});
+document.getElementById('ppRetrainAllTypes').classList.toggle('active', state.retrainTypes.length === TYPE_IDS.length);
+document.querySelectorAll('#ppFreshTypeChips .chip[data-type]').forEach(function (c) {
+c.classList.toggle('active', state.freshTypes.indexOf(c.dataset.type) >= 0);
+});
+document.getElementById('ppFreshAllTypes').classList.toggle('active', state.freshTypes.length === TYPE_IDS.length);
+
+var retrainSplitOn = isSplit(state.retrainTypes);
+var freshSplitOn = isSplit(state.freshTypes);
+document.getElementById('ppSplitRetrainArea').style.display = retrainSplitOn ? '' : 'none';
+document.getElementById('ppSplitFreshArea').style.display = freshSplitOn ? '' : 'none';
+
+var typesKeyRetrain = state.retrainTypes.join(',');
+if (typesKeyRetrain !== splitKeyRetrain) {
+splitKeyRetrain = typesKeyRetrain;
+splitBarRetrain.build(state.retrainTypes);
+}
+var typesKeyFresh = state.freshTypes.join(',');
+if (typesKeyFresh !== splitKeyFresh) {
+splitKeyFresh = typesKeyFresh;
+splitBarFresh.build(state.freshTypes);
+}
+
+onlyRetrainBtn.disabled = eventTarget() <= 0;
+noRetrainBtn.disabled = state.retrain <= 0;
+
+extraToggleBtn.classList.toggle('active', state.retrainExtraOn);
+extraArea.style.display = state.retrainExtraOn ? '' : 'none';
+if (state.retrainExtraOn) renderExtraInputs();
+
+document.querySelectorAll('[data-toggle]').forEach(function (row) {
+row.querySelector('.pp-sw').classList.toggle('on', !!state.toggles[row.dataset.toggle]);
+});
+document.getElementById('ppVipBonus').textContent = '+' + vipBonus(state.vip) + '%';
+document.getElementById('ppTotalBonus').textContent = '+' + totalBonusPct() + '%';
+document.getElementById('ppTotalSub').textContent = state.toggles.cityTheme
+? 'Тема города также срезает затраты в ресурсах на 2%'
+: '';
+
+fillFreshTiers();
+
+var r = calc();
+updatePrepSection(r);
+
+if (retrainSplitOn) {
+document.getElementById('ppSplitRetrainTotal').textContent = fmt(state.retrain);
+splitBarRetrain.update();
+}
+renderScanAvailable();
+if (freshSplitOn) {
+document.getElementById('ppSplitFreshTotal').textContent = fmt(r.freshUnits);
+splitBarFresh.update();
+}
+
+var prep = r.prep;
+document.getElementById('ppPrepInfo').textContent = prep.units
+? 'По ' + fmt(prep.perType) + ' юнитов ' + prep.tierLabel + ' в каждый из ' + TROOP_TYPES.length +
+' типов войск — всего ' + fmt(prep.units) + ', это +' + fmt(prep.power) + ' мощи сразу в день события'
+: '';
+
+var targetSub = state.target > 0 ? 'Цель: ' + fmt(state.target) : 'укажи цель по мощи';
+if (prep.units) targetSub += ' · заготовка ' + fmt(prep.power);
+document.getElementById('ppTiles').innerHTML =
+'<div class="pp-tile hero"><div class="pp-tile-lbl">Набрано мощи</div>' +
+'<div class="pp-tile-val">' + fmt(r.totalPowerGained) + '</div>' +
+'<div class="pp-tile-sub">' + targetSub + '</div></div>' +
+'<div class="pp-tile"><div class="pp-tile-lbl">Тренировать в событии</div>' +
+'<div class="pp-tile-val">' + fmt(state.retrain + r.extraCount + r.freshUnits) + '</div>' +
+'<div class="pp-tile-sub">' + fmt(state.retrain + r.extraCount) + ' перетрен. + ' + fmt(r.freshUnits) + ' с нуля</div></div>' +
+'<div class="pp-tile"><div class="pp-tile-lbl">Нужно ускорений на</div>' +
+'<div class="pp-tile-val time">' + fmtDuration(r.totalSec) + '</div>' +
+'<div class="pp-tile-sub">с бонусом +' + r.bonusPct + '% к скорости</div></div>';
+
+document.getElementById('ppTable').innerHTML =
+'<div class="pp-tr head"><div>Способ</div><div class="pp-td">Юнитов</div><div class="pp-td">Мощь</div><div class="pp-td">Ускорения</div></div>' +
+(prep.units
+? '<div class="pp-tr"><div class="pp-td-name">Заготовка<span class="sub">' + prep.tierLabel + ' · по ' + fmt(prep.perType) +
+' в ' + TROOP_TYPES.length + ' типов войск · +' + prep.perUnit + ' мощи за юнита</span></div>' +
+'<div class="pp-td" data-l="Юнитов">' + fmt(prep.units) + '</div><div class="pp-td" data-l="Мощь">' + fmt(prep.power) + '</div>' +
+'<div class="pp-td" data-l="Ускорения">заранее</div></div>'
+: '') +
+'<div class="pp-tr"><div class="pp-td-name">Перетренировка T4 → T5<span class="sub">+6 мощи за юнита</span></div>' +
+'<div class="pp-td" data-l="Юнитов">' + fmt(state.retrain) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.retrainPowerGain) + '</div>' +
+'<div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.retrainSec) + '</div></div>' +
+(r.extraCount > 0 && r.extraRange
+? '<div class="pp-tr"><div class="pp-td-name">Доп. перетренировка ' + retrainRangeLabel(r.extraRange) + '<span class="sub">+' + retrainRangePower(r.extraRange) + ' мощи за юнита</span></div>' +
+'<div class="pp-td" data-l="Юнитов">' + fmt(r.extraCount) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.extraPowerGain) + '</div>' +
+'<div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.extraSec) + '</div></div>'
+: '') +
+'<div class="pp-tr"><div class="pp-td-name">Тренировка с нуля<span class="sub">' + state.freshTier.toUpperCase() + ' · +' + POWER[state.freshTier] + ' мощи за юнита</span></div>' +
+'<div class="pp-td" data-l="Юнитов">' + fmt(r.freshUnits) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.freshPowerGain) + '</div>' +
+'<div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.freshSec) + '</div></div>';
+
+document.getElementById('ppRes').innerHTML = RES_KEYS.map(function (k) {
+return '<div class="pp-res-item">' +
+'<img class="pp-res-ico" src="../assets/calc/' + k + '.webp" width="36" height="36" alt="">' +
+'<div><div class="pp-res-name">' + RES_LABEL[k] + '</div>' +
+'<div class="pp-res-val">' + fmt(r.totalRes[k]) + '</div></div></div>';
+}).join('');
+
+var notes = '';
+if (prep.units && state.target > 0 && prep.power >= state.target) {
+notes += '<div class="pp-note">Заготовка уже закрывает цель — во время события тренировать ничего не нужно.</div>';
+}
+if (r.missing.length) {
+notes += '<div class="pp-note">У летающих войск нет T1 и T2, поэтому в расчёт ресурсов не попали: ' +
+r.missing.join(', ') + '. Отдай эти юниты другим типам войск или подними тир.</div>';
+}
+if (r.resMult !== 1) {
+notes += '<div class="pp-hint">Ресурсы указаны с учётом −2% от темы города.</div>';
+}
+if (prep.units) {
+notes += '<div class="pp-hint">Ускорения и ресурсы — только на время события: заготовку оплачивают заранее.</div>';
+}
+document.getElementById('ppNotes').innerHTML = notes;
+saveState();
+}
+
+// ── Память браузера ──
+var STORE_KEY = 'akame-power-peak';
+var saveTimer = null;
+function saveState() {
+// Пишем с задержкой: render зовётся на каждое движение ползунка разбивки.
+if (saveTimer) clearTimeout(saveTimer);
+saveTimer = setTimeout(function () {
+try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}, 250);
+}
+
+function loadState() {
+var saved;
+try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { return; }
+if (!saved || typeof saved !== 'object') return;
+var num = function (v) { return typeof v === 'number' && isFinite(v) && v >= 0; };
+
+var retrainTypes = Array.isArray(saved.retrainTypes) ? saved.retrainTypes.filter(function (t) { return TYPE_IDS.indexOf(t) >= 0; }) : [];
+var freshTypes = Array.isArray(saved.freshTypes) ? saved.freshTypes.filter(function (t) { return TYPE_IDS.indexOf(t) >= 0; }) : [];
+// Старый формат хранил один общий набор типов на оба назначения.
+if (!retrainTypes.length && !freshTypes.length && Array.isArray(saved.types)) {
+var legacy = saved.types.filter(function (t) { return TYPE_IDS.indexOf(t) >= 0; });
+if (legacy.length) { retrainTypes = legacy.slice(); freshTypes = legacy.slice(); }
+}
+if (retrainTypes.length) state.retrainTypes = retrainTypes;
+if (freshTypes.length) state.freshTypes = freshTypes;
+
+if (saved.toggles) Object.keys(state.toggles).forEach(function (k) {
+if (typeof saved.toggles[k] === 'boolean') state.toggles[k] = saved.toggles[k];
+});
+if (num(saved.vip)) state.vip = Math.max(1, Math.min(16, Math.round(saved.vip)));
+if (MANA_STONES.some(function (s) { return s.id === saved.stone; })) state.stone = saved.stone;
+if (PREPS.some(function (p) { return p.id === saved.prep; })) state.prep = saved.prep;
+if (num(saved.target)) state.target = Math.round(saved.target);
+if (num(saved.retrain)) state.retrain = Math.round(saved.retrain);
+if (typeof saved.retrainExtraOn === 'boolean') state.retrainExtraOn = saved.retrainExtraOn;
+if (RETRAIN_RANGES.some(function (r) { return r.id === saved.retrainExtraRange; })) state.retrainExtraRange = saved.retrainExtraRange;
+if (num(saved.retrainExtra)) state.retrainExtra = Math.round(saved.retrainExtra);
+if (TIERS.indexOf(saved.freshTier) >= 0) state.freshTier = saved.freshTier;
+['retrain', 'retrainExtra', 'fresh'].forEach(function (key) {
+if (saved.split && saved.split[key]) TYPE_IDS.forEach(function (id) {
+if (num(saved.split[key][id])) state.split[key][id] = Math.round(saved.split[key][id]);
+});
+if (saved.splitManual && typeof saved.splitManual[key] === 'boolean') {
+state.splitManual[key] = saved.splitManual[key];
+}
+});
+if (typeof saved.prepCustomBonusOn === 'boolean') state.prepCustomBonusOn = saved.prepCustomBonusOn;
+if (saved.prepCustomToggles) Object.keys(state.prepCustomToggles).forEach(function (k) {
+if (typeof saved.prepCustomToggles[k] === 'boolean') state.prepCustomToggles[k] = saved.prepCustomToggles[k];
+});
+if (num(saved.prepCustomVip)) state.prepCustomVip = Math.max(1, Math.min(16, Math.round(saved.prepCustomVip)));
+if (MANA_STONES.some(function (s) { return s.id === saved.prepCustomStone; })) state.prepCustomStone = saved.prepCustomStone;
+clampRetrainToTarget();
+}
+
+function syncControls() {
+prepSel.value = state.prep;
+vipSel.value = state.vip;
+stoneSel.value = state.stone;
+targetInput.value = formatNum(state.target);
+retrainInput.value = formatNum(state.retrain);
+extraRangeSel.value = state.retrainExtraRange;
+renderExtraInputs();
+}
+
+document.getElementById('ppReset').addEventListener('click', function () {
+var d = defaultState();
+state.retrainTypes = d.retrainTypes;
+state.freshTypes = d.freshTypes;
+state.toggles = d.toggles;
+state.splitManual = d.splitManual;
+state.vip = d.vip;
+state.stone = d.stone;
+state.prep = d.prep;
+state.target = d.target;
+state.retrain = d.retrain;
+state.retrainExtraOn = d.retrainExtraOn;
+state.retrainExtraRange = d.retrainExtraRange;
+state.retrainExtra = d.retrainExtra;
+state.freshTier = d.freshTier;
+state.prepCustomBonusOn = d.prepCustomBonusOn;
+state.prepCustomToggles = d.prepCustomToggles;
+state.prepCustomVip = d.prepCustomVip;
+state.prepCustomStone = d.prepCustomStone;
+// Объекты раскладки переиспользуем — на них держат ссылку шкалы разбивки.
+TYPE_IDS.forEach(function (id) { state.split.retrain[id] = 0; state.split.retrainExtra[id] = 0; state.split.fresh[id] = 0; });
+try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+syncControls();
+render();
+});
+
+// ── Режим «Количество войск»: отдельный UI поверх исходного режима ──
+state.mode = 'target';
+state.manual = {
+  retrain: { infantry: 0, cavalry: 0, marksman: 0, mage: 0, flying: 0 },
+  fresh: { infantry: 0, cavalry: 0, marksman: 0, mage: 0, flying: 0 },
+  freshTiers: { infantry: 't5', cavalry: 't5', marksman: 't5', mage: 't5', flying: 't5' },
+  tierMode: 'common',
+  commonTier: 't5'
+};
+
+(function loadManualState() {
+  try {
+    var savedMode = localStorage.getItem('akame-power-peak-mode');
+    if (savedMode === 'manual' || savedMode === 'target') state.mode = savedMode;
+    var savedManual = JSON.parse(localStorage.getItem('akame-power-peak-manual') || 'null');
+    if (savedManual) {
+      TYPE_IDS.forEach(function (id) {
+        var rv = parseInt(savedManual.retrain && savedManual.retrain[id], 10);
+        var fv = parseInt(savedManual.fresh && savedManual.fresh[id], 10);
+        if (isFinite(rv) && rv > 0) state.manual.retrain[id] = rv;
+        if (isFinite(fv) && fv > 0) state.manual.fresh[id] = fv;
+        if (savedManual.freshTiers && TIERS.indexOf(savedManual.freshTiers[id]) >= 0) state.manual.freshTiers[id] = savedManual.freshTiers[id];
+      });
+      if (savedManual.tierMode === 'personal' || savedManual.tierMode === 'common') state.manual.tierMode = savedManual.tierMode;
+      if (TIERS.indexOf(savedManual.commonTier) >= 0) state.manual.commonTier = savedManual.commonTier;
+    }
+  } catch (e) {}
+})();
+
+function typeRu(id) {
+  var t = TROOP_TYPES.filter(function (x) { return x.id === id; })[0];
+  return t ? t.ru : id;
+}
+function allowedTiersFor(id) {
+  return TIERS.filter(function (t) { return costKnown(id, t); });
+}
+function tierOptions(id) {
+  return allowedTiersFor(id).map(function (t) {
+    return '<option value="' + t + '">' + t.toUpperCase() + ' · +' + POWER[t] + ' мощи</option>';
+  }).join('');
+}
+
+var manualRetrainField = document.getElementById('ppManualRetrainInputs');
+var manualFreshField = document.getElementById('ppManualFreshInputs');
+var manualCommonTier = document.getElementById('ppManualCommonTier');
+
+function manualNumberInput(id, group) {
+  var wrap = document.createElement('label');
+  wrap.className = 'pp-manual-input';
+  var title = document.createElement('span');
+  title.className = 'pp-manual-name';
+  title.textContent = typeRu(id);
+  var input = document.createElement('input');
+  input.type = 'text'; input.inputMode = 'numeric'; input.autocomplete = 'off';
+  input.className = 'pp-input'; input.placeholder = '0';
+  input.value = formatNum(state.manual[group][id]);
+  input.dataset.type = id; input.dataset.group = group;
+  input.addEventListener('input', function () {
+    // Ввод не вызывает render: можно спокойно набрать 11600 и любое другое
+    // многозначное число без пересоздания самого поля после каждой цифры.
+    state.manual[group][id] = parseNum(input.value);
+  });
+  input.addEventListener('change', function () { render(); });
+  input.addEventListener('blur', function () {
+    input.value = formatNum(state.manual[group][id]);
+    render();
+  });
+  wrap.appendChild(title); wrap.appendChild(input);
+  return wrap;
+}
+
+function manualTierSelect(id) {
+  var wrap = document.createElement('div');
+  wrap.className = 'pp-personal-tier';
+  var label = document.createElement('span');
+  label.className = 'pp-manual-name';
+  label.textContent = 'Тир';
+  var sel = document.createElement('select');
+  sel.className = 'pp-select';
+  sel.innerHTML = tierOptions(id);
+  var allowed = allowedTiersFor(id);
+  if (allowed.indexOf(state.manual.freshTiers[id]) < 0) state.manual.freshTiers[id] = allowed[allowed.length - 1];
+  sel.value = state.manual.freshTiers[id];
+  sel.addEventListener('change', function () {
+    state.manual.freshTiers[id] = sel.value;
+    render();
+  });
+  wrap.appendChild(label); wrap.appendChild(sel);
+  return wrap;
+}
+
+function renderManualRetrainInputs() {
+  manualRetrainField.innerHTML = '';
+  TYPE_IDS.forEach(function (id) { manualRetrainField.appendChild(manualNumberInput(id, 'retrain')); });
+}
+function renderManualFreshInputs() {
+  manualFreshField.innerHTML = '';
+  TYPE_IDS.forEach(function (id) {
+    var wrap = document.createElement('div');
+    wrap.className = 'pp-manual-fresh-item';
+    if (state.manual.tierMode === 'personal') wrap.appendChild(manualTierSelect(id));
+    var inputWrap = manualNumberInput(id, 'fresh');
+    wrap.appendChild(inputWrap);
+    manualFreshField.appendChild(wrap);
+  });
+}
+function fillManualTierControls() {
+  // Общий тир должен существовать у всех пяти типов, поэтому для него
+  // доступны только T3–T5: у летающих нет T1 и T2.
+  var commonTiers = TIERS.filter(function (t) {
+    return TYPE_IDS.every(function (id) { return costKnown(id, t); });
+  });
+  manualCommonTier.innerHTML = commonTiers.map(function (t) {
+    return '<option value="' + t + '">' + t.toUpperCase() + ' · +' + POWER[t] + ' мощи за юнита</option>';
+  }).join('');
+  if (commonTiers.indexOf(state.manual.commonTier) < 0) state.manual.commonTier = commonTiers[commonTiers.length - 1];
+  manualCommonTier.value = state.manual.commonTier;
+  document.querySelectorAll('#ppManualTierMode .pp-mode-btn').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.tierMode === state.manual.tierMode);
+  });
+  document.getElementById('ppManualCommonTierWrap').hidden = state.manual.tierMode !== 'common';
+}
+
+function manualCalc() {
+  var bonusPct = totalBonusPct();
+  var mult = 1 + bonusPct / 100;
+  var resMult = state.toggles.cityTheme ? (1 - CITY_THEME_RES_DISCOUNT) : 1;
+  var retrainRes = zeroRes(), freshRes = zeroRes(), missing = [];
+  var retrainUnits = 0, freshUnits = 0, freshPowerGain = 0, freshSec = 0;
+  function note(typeId, tier) {
+    var label = typeRu(typeId) + ' ' + tier.toUpperCase();
+    if (missing.indexOf(label) < 0) missing.push(label);
+  }
+  TYPE_IDS.forEach(function (id) {
+    var rc = state.manual.retrain[id] || 0;
+    if (rc > 0) {
+      retrainUnits += rc;
+      if (costKnown(id, 't4') && costKnown(id, 't5')) addInto(retrainRes, diffRes(costOf(id, 't5'), costOf(id, 't4')), rc);
+      else note(id, 't5');
+    }
+    var fc = state.manual.fresh[id] || 0;
+    var tier = state.manual.tierMode === 'common' ? state.manual.commonTier : state.manual.freshTiers[id];
+    if (fc > 0) {
+      freshUnits += fc;
+      freshPowerGain += fc * POWER[tier];
+      freshSec += fc * SEC_PER_UNIT[tier] / mult;
+      if (costKnown(id, tier)) addInto(freshRes, costOf(id, tier), fc);
+      else note(id, tier);
+    }
+  });
+  var extraRange = RETRAIN_RANGES.filter(function (x) { return x.id === state.retrainExtraRange; })[0];
+  var extraCount = state.retrainExtraOn ? state.retrainExtra : 0;
+  var extraRes = zeroRes();
+  if (extraCount > 0 && extraRange) {
+    TYPE_IDS.forEach(function (id) {
+      var c = state.split.retrainExtra[id] || 0;
+      if (c > 0) {
+        if (costKnown(id, extraRange.from) && costKnown(id, extraRange.to)) addInto(extraRes, diffRes(costOf(id, extraRange.to), costOf(id, extraRange.from)), c);
+        else note(id, extraRange.to);
+      }
+    });
+  }
+  retrainRes = scaleRes(retrainRes, resMult); freshRes = scaleRes(freshRes, resMult); extraRes = scaleRes(extraRes, resMult);
+  var prep = prepInfo();
+  var retrainPowerGain = retrainUnits * RETRAIN_POWER;
+  var extraPowerGain = extraCount * (extraRange ? retrainRangePower(extraRange) : 0);
+  var retrainSec = retrainUnits * (SEC_PER_UNIT.t5 - SEC_PER_UNIT.t4) / mult;
+  var extraSec = extraRange ? extraCount * (SEC_PER_UNIT[extraRange.to] - SEC_PER_UNIT[extraRange.from]) / mult : 0;
+  return {
+    bonusPct: bonusPct, freshUnits: freshUnits, prep: prep,
+    retrainPowerGain: retrainPowerGain, extraPowerGain: extraPowerGain, freshPowerGain: freshPowerGain,
+    extraCount: extraCount, extraRange: extraRange,
+    totalPowerGained: prep.power + retrainPowerGain + extraPowerGain + freshPowerGain,
+    retrainSec: retrainSec, extraSec: extraSec, freshSec: freshSec,
+    totalSec: retrainSec + extraSec + freshSec,
+    totalRes: sumRes(sumRes(retrainRes, extraRes), freshRes), missing: missing, resMult: resMult,
+    manual: true, retrainUnits: retrainUnits
+  };
+}
+
+var originalCalc = calc;
+calc = function () { return state.mode === 'manual' ? manualCalc() : originalCalc(); };
+
+var originalRender = render;
+render = function () {
+  originalRender();
+  document.querySelectorAll('.pp-mode-btn').forEach(function (b) { b.classList.toggle('active', b.dataset.mode === state.mode); });
+  var targetCard = document.getElementById('ppTargetCard');
+  var targetAmount = document.querySelector('.pp-target-retrain-amount');
+  var targetRetrainControls = document.querySelector('.pp-target-retrain-controls');
+  var targetFreshControls = document.querySelector('.pp-target-fresh-controls');
+  var targetFreshTier = document.querySelector('.pp-target-fresh-tier');
+  var manualRetrainUI = document.getElementById('ppManualRetrainUI');
+  var manualFreshUI = document.getElementById('ppManualFreshUI');
+  var desc = document.getElementById('ppModeDesc');
+  if (state.mode === 'manual') {
+    if (targetCard) targetCard.style.display = 'none';
+    if (targetAmount) targetAmount.style.display = 'none';
+    if (targetRetrainControls) targetRetrainControls.style.display = 'none';
+    if (targetFreshControls) targetFreshControls.style.display = 'none';
+    if (targetFreshTier) targetFreshTier.style.display = 'none';
+    manualRetrainUI.hidden = false;
+    manualFreshUI.hidden = false;
+    document.getElementById('ppScanResult').style.display = 'none';
+    document.getElementById('ppScanAvailable').style.display = 'none';
+    document.getElementById('ppSplitRetrainArea').style.display = 'none';
+    document.getElementById('ppSplitFreshArea').style.display = 'none';
+    if (desc) desc.textContent = 'Вводишь точное количество войск. В перетренировке T4 → T5 все 5 типов доступны сразу. В тренировке можно выбрать общий тир или персональный тир для каждого типа.';
+    fillManualTierControls();
+    renderManualRetrainInputs();
+    renderManualFreshInputs();
+    var r = calc();
+    document.getElementById('ppTiles').innerHTML =
+      '<div class="pp-tile hero"><div class="pp-tile-lbl">Мощь от выбранных войск</div><div class="pp-tile-val">' + fmt(r.totalPowerGained) + '</div><div class="pp-tile-sub">включая заготовку</div></div>' +
+      '<div class="pp-tile"><div class="pp-tile-lbl">Всего войск</div><div class="pp-tile-val">' + fmt(r.prep.units + r.retrainUnits + r.extraCount + r.freshUnits) + '</div><div class="pp-tile-sub">заготовка + перетрен. + тренировка</div></div>' +
+      '<div class="pp-tile"><div class="pp-tile-lbl">Ускорения</div><div class="pp-tile-val time">' + fmtDuration(r.totalSec) + '</div><div class="pp-tile-sub">только для войск события</div></div>';
+    document.getElementById('ppTable').innerHTML =
+      '<div class="pp-tr head"><div>Способ</div><div class="pp-td">Юнитов</div><div class="pp-td">Мощь</div><div class="pp-td">Ускорения</div></div>' +
+      (r.prep.units ? '<div class="pp-tr"><div class="pp-td-name">Заготовка<span class="sub">' + r.prep.tierLabel + ' · по ' + fmt(r.prep.perType) + ' в каждый из 5 типов</span></div><div class="pp-td" data-l="Юнитов">' + fmt(r.prep.units) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.prep.power) + '</div><div class="pp-td gold" data-l="Ускорения">—</div></div>' : '') +
+      '<div class="pp-tr"><div class="pp-td-name">Перетренировка T4 → T5<span class="sub">введено отдельно по всем 5 типам</span></div><div class="pp-td" data-l="Юнитов">' + fmt(r.retrainUnits) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.retrainPowerGain) + '</div><div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.retrainSec) + '</div></div>' +
+      (r.extraCount > 0 && r.extraRange ? '<div class="pp-tr"><div class="pp-td-name">Доп. перетренировка ' + retrainRangeLabel(r.extraRange) + '</div><div class="pp-td" data-l="Юнитов">' + fmt(r.extraCount) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.extraPowerGain) + '</div><div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.extraSec) + '</div></div>' : '') +
+      '<div class="pp-tr"><div class="pp-td-name">Тренировка с нуля<span class="sub">общий тир: ' + state.manual.commonTier.toUpperCase() + ' / персональный: по типам</span></div><div class="pp-td" data-l="Юнитов">' + fmt(r.freshUnits) + '</div><div class="pp-td" data-l="Мощь">' + fmt(r.freshPowerGain) + '</div><div class="pp-td gold" data-l="Ускорения">' + fmtDuration(r.freshSec) + '</div></div>';
+    var notes = '<div class="pp-note">В режиме «Количество войск» каждый ввод относится к своему типу войск. Заготовка считается отдельно и не входит в ускорения события.</div>';
+    if (r.missing.length) notes += '<div class="pp-note">Для следующих позиций в исходных данных нет стоимости: ' + r.missing.join(', ') + '.</div>';
+    if (r.resMult !== 1) notes += '<div class="pp-hint">Ресурсы указаны с учётом −2% от темы города.</div>';
+    document.getElementById('ppNotes').innerHTML = notes;
+    document.getElementById('ppRes').innerHTML = RES_KEYS.map(function (k) {
+      return '<div class="pp-res-item"><img class="pp-res-ico" src="../assets/calc/' + k + '.webp" width="36" height="36" alt="" onerror="this.style.display=\'none\'">' +
+      '<div><div class="pp-res-name">' + RES_LABEL[k] + '</div><div class="pp-res-val">' + fmt(r.totalRes[k]) + '</div></div></div>';
+    }).join('');
+  } else {
+    if (targetCard) targetCard.style.display = '';
+    if (targetAmount) targetAmount.style.display = '';
+    if (targetRetrainControls) targetRetrainControls.style.display = '';
+    if (targetFreshControls) targetFreshControls.style.display = '';
+    if (targetFreshTier) targetFreshTier.style.display = '';
+    manualRetrainUI.hidden = true;
+    manualFreshUI.hidden = true;
+    if (desc) desc.textContent = 'Вводишь желаемую мощь — исходная логика «Вершины власти»: сначала перетренировка T4 → T5, затем недостающая мощь через тренировку.';
+  }
+};
+
+document.querySelectorAll('#ppModeSwitch .pp-mode-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    state.mode = btn.dataset.mode;
+    try { localStorage.setItem('akame-power-peak-mode', state.mode); } catch (e) {}
+    render();
+  });
+});
+document.querySelectorAll('#ppManualTierMode .pp-mode-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    state.manual.tierMode = btn.dataset.tierMode;
+    render();
+  });
+});
+manualCommonTier.addEventListener('change', function () {
+  state.manual.commonTier = manualCommonTier.value;
+  render();
+});
+
+// Сбрасываем ручные количества и настройки вместе с остальными значениями.
+document.getElementById('ppReset').addEventListener('click', function () {
+  state.mode = 'target';
+  TYPE_IDS.forEach(function (id) { state.manual.retrain[id] = 0; state.manual.fresh[id] = 0; state.manual.freshTiers[id] = 't5'; });
+  state.manual.tierMode = 'common'; state.manual.commonTier = 't5';
+  try { localStorage.removeItem('akame-power-peak-mode'); localStorage.removeItem('akame-power-peak-manual'); } catch (e) {}
+  render();
+});
+
+var oldSaveStateForManual = saveState;
+saveState = function () {
+  oldSaveStateForManual();
+  try {
+    localStorage.setItem('akame-power-peak-mode', state.mode);
+    localStorage.setItem('akame-power-peak-manual', JSON.stringify(state.manual));
+  } catch (e) {}
+};
+
+loadState();
+syncControls();
+render();
+})();
+</script>
+</body>
+</html>
